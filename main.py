@@ -105,7 +105,7 @@ def validation():
 
         correct += pred.eq(target.data.view_as(pred)).int().sum()
     print('\nValidation set: Average loss: {:.4f}, Accuracy: {}/{} ({:.0f}%)'.format(
-        validation_loss.data.item() / len(val_loader), correct.data.item(), len(val_loader.dataset),
+        validation_loss.data.item(), correct.data.item(), len(val_loader.dataset),
         100. * correct.data.item() / len(val_loader.dataset)))
 
 
