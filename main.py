@@ -3,6 +3,7 @@ import os
 import torch
 import torch.nn as nn
 import torch.optim as optim
+from torch.utils.data import ConcatDataset, random_split, ChainDataset
 from torchvision import datasets
 from torch.autograd import Variable
 from tqdm import tqdm
@@ -15,7 +16,7 @@ parser.add_argument('--batch-size', type=int, default=64, metavar='B',
                     help='input batch size for training (default: 64)')
 parser.add_argument('--epochs', type=int, default=10, metavar='N',
                     help='number of epochs to train (default: 10)')
-parser.add_argument('--lr', type=float, default=0.1, metavar='LR',
+parser.add_argument('--lr', type=float, default=0.01, metavar='LR',
                     help='learning rate (default: 0.01)')
 parser.add_argument('--momentum', type=float, default=0.5, metavar='M',
                     help='SGD momentum (default: 0.5)')
@@ -25,6 +26,8 @@ parser.add_argument('--log-interval', type=int, default=10, metavar='N',
                     help='how many batches to wait before logging training status')
 parser.add_argument('--experiment', type=str, default='experiment', metavar='E',
                     help='folder where experiment outputs are located.')
+parser.add_argument('--train-val-prop', type=float, default=0.75, metavar='TVP',
+                    help='proportion of images to use for train set.')
 args = parser.parse_args()
 use_cuda = torch.cuda.is_available()
 torch.manual_seed(args.seed)
@@ -34,16 +37,24 @@ if not os.path.isdir(args.experiment):
     os.makedirs(args.experiment)
 
 # Data initialization and loading
-from data import data_transforms
+from data import train_transforms, eval_transforms
+def valid(fn):
+    return fn.split('.')[-2] == '00' or True
 
-train_loader = torch.utils.data.DataLoader(
-    datasets.ImageFolder(args.data + '/train_images',
-                         transform=data_transforms),
-    batch_size=args.batch_size, shuffle=True, num_workers=1)
-val_loader = torch.utils.data.DataLoader(
-    datasets.ImageFolder(args.data + '/val_images',
-                         transform=data_transforms),
-    batch_size=args.batch_size, shuffle=False, num_workers=1)
+
+train_f_ds = datasets.ImageFolder(args.data + '/train_images',
+                                  transform=train_transforms,
+                                  is_valid_file=valid)
+val_f_ds = datasets.ImageFolder(args.data + '/val_images',
+                                transform=train_transforms,
+                                is_valid_file=valid)
+full_ds = ConcatDataset([train_f_ds, val_f_ds])
+train_size = int(args.train_val_prop * len(full_ds))
+val_size = len(full_ds) - train_size
+print(f"Using train size {train_size} and val size {val_size}")
+train_ds, val_ds = random_split(full_ds, [train_size, val_size])
+train_loader = torch.utils.data.DataLoader(train_ds, batch_size=args.batch_size, shuffle=True, num_workers=4)
+val_loader = torch.utils.data.DataLoader(val_ds, batch_size=args.batch_size, shuffle=False, num_workers=4)
 
 # Neural network and optimizer
 # We define neural net in model.py so that it can be reused by the evaluate.py script
@@ -56,6 +67,7 @@ else:
     print('Using CPU')
 
 optimizer = optim.SGD(model.parameters(), lr=args.lr, momentum=args.momentum)
+# optimizer = optim.Adam(model.parameters(), lr=args.lr)
 
 def train(epoch):
     model.train()
@@ -68,30 +80,33 @@ def train(epoch):
         loss = criterion(output, target)
         loss.backward()
         optimizer.step()
-        if batch_idx % args.log_interval == 0:
+        if (batch_idx) % args.log_interval == 0:
             print('Train Epoch: {} [{}/{} ({:.0f}%)]\tLoss: {:.6f}'.format(
-                epoch, batch_idx * len(data), len(train_loader.dataset),
-                100. * batch_idx / len(train_loader), loss.data.item()))
+                epoch,
+                batch_idx * len(data),
+                len(train_loader.dataset),
+                100. * batch_idx / len(train_loader),
+                loss.cpu().item()))
+
 
 def validation():
     model.eval()
-    validation_loss = 0
-    correct = 0
+    validation_loss = torch.Tensor([0]).to("cuda")
+    correct = torch.Tensor([0]).to("cuda")
     for data, target in val_loader:
         if use_cuda:
             data, target = data.cuda(), target.cuda()
         output = model(data)
         # sum up batch loss
         criterion = torch.nn.CrossEntropyLoss(reduction='mean')
-        validation_loss += criterion(output, target).data.item()
+        validation_loss += criterion(output, target)
         # get the index of the max log-probability
         pred = output.data.max(1, keepdim=True)[1]
-        correct += pred.eq(target.data.view_as(pred)).cpu().sum()
 
-    validation_loss /= len(val_loader.dataset)
+        correct += pred.eq(target.data.view_as(pred)).int().sum()
     print('\nValidation set: Average loss: {:.4f}, Accuracy: {}/{} ({:.0f}%)'.format(
-        validation_loss, correct, len(val_loader.dataset),
-        100. * correct / len(val_loader.dataset)))
+        validation_loss.data.item() / len(val_loader), correct.data.item(), len(val_loader.dataset),
+        100. * correct.data.item() / len(val_loader.dataset)))
 
 
 for epoch in range(1, args.epochs + 1):

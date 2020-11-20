@@ -1,0 +1,43 @@
+### model_base
+Val: loss=0.0447, acc=25/103
+
+### model_resnet50
+Training the full model
+Val@8 loss=0.0389, acc=42/103
+Training only the last fc
+Val@9 loss=0.0519 acc=48/103
+Continue à s'améliorer, on peut plus entrainer
+Train bcp plus vite si on freeze le featurizer
+
+### crop + model_resnet50
+acc similaire au précédent
+
+
+
+crop -> add factor for slack
+
+
+Premier modèle de crop (out of the box detectron2) -> Marche pas mal, mais parfois détecte plusieurs oiseaux. Généralement c'est le même, et les détections de faible confiances sont des dezooms inutiles, mais parfois les deuxièmes sont mieux. Les garder toutes ?
+MEF -> en croppant, perte de contexte, perte d'information. C'est peut-être utile de garder un peu de contexte.
+
+Faire du clustering sur les high level features pour voir ce qui est dur à classifier
+-> visualisation (tSNE, PCA, isomap...)
+-> TDA (permet de voir les composantes connexes...)
+
+
+k-fold cross-Val
+
+Data augmentation
+
+
+random erasing https://arxiv.org/abs/1708.04896
+
+
+RESIZE (En 64x64 je dépassais pas 50% d'acc, en 256x256 avec exactement la meme setup je sors 75% en 5 epochs)
+
+étudier les tailles des crops -> adaptive resize ?
+
+Comprendre l'outlier de la tSNE -> a priori, c'est juste que il est vraiment fin vertical, et qu'il se fait déformer quand il est mis en 512x512
+
+TODO adaptive resize
+TODO pour le cropper, faire un crop englobant

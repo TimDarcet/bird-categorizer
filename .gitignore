@@ -1,0 +1,8 @@
+experiment
+bird_dataset
+.vscode
+__pycache__
+bird_dataset.zip
+crops*
+.ipynb_checkpoints
+recvis.zip
