@@ -111,6 +111,24 @@ def load_data(data_folder, tv_prop, batch_size):
     return train_loader, val_loader
 
 
+def sync_initial_weights(model):
+    for param in model.parameters():
+        if torch.distributed.get_rank() == 0:
+            # Rank 0 is sending it's own weight
+            # to all it's siblings (1 to world_size)
+            for sibling in range(1, torch.distributed.get_world_size()):
+                torch.distributed.send(param.data, dst=sibling)
+        else:
+            # Siblings must recieve the parameters
+            torch.distributed.recv(param.data, src=0)
+
+
+def sync_gradients(model):
+    for param in model.parameters():
+        torch.distributed.all_reduce(param.grad.data,
+                                     op=torch.distributed.reduce_op.SUM)
+
+
 def train(epoch, model, train_loader, optimizer, criterion):
     model.train()
     for batch_idx, (data, target) in enumerate(train_loader):
@@ -119,6 +137,7 @@ def train(epoch, model, train_loader, optimizer, criterion):
         output = model(data)
         loss = criterion(output, target)
         loss.backward()
+        sync_gradients(model)
         optimizer.step()
     return loss.cpu().item()
 
@@ -176,6 +195,9 @@ def main():
 
     # Define loss
     criterion = torch.nn.CrossEntropyLoss(reduction='mean')
+
+    # Sync models
+    sync_initial_weights(model)
 
     # Run the training
     for epoch in range(1, args.epochs + 1):
