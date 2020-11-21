@@ -128,6 +128,7 @@ def sync_gradients(model):
         if param.requires_grad:
             torch.distributed.all_reduce(param.grad.data,
                                          op=torch.distributed.ReduceOp.SUM)
+            param.grad.data /= torch.distributed.get_world_size()
 
 
 def train(epoch, model, train_loader, optimizer, criterion):
@@ -137,8 +138,10 @@ def train(epoch, model, train_loader, optimizer, criterion):
         optimizer.zero_grad()
         output = model(data)
         loss = criterion(output, target)
-        loss.backward()
-        sync_gradients(model)
+        torch.distributed.all_reduce(loss, op=torch.distributed.ReduceOp.SUM)
+        mean_loss = loss / (torch.distributed.get_world_size() * len(target))
+        mean_loss.backward()
+        # sync_gradients(model)  # MEF: Si les batch ne sont pas de même tailles sur les différents nodes, la moyenne n'est pas équilibrée
         optimizer.step()
     return loss.cpu().item()
 
@@ -155,9 +158,11 @@ def validation(model, val_loader, optimizer, criterion):
         # batch accuracy
         pred = output.data.max(1, keepdim=True)[1]
         correct += pred.eq(target.data.view_as(pred)).int().sum()
+    validation_loss = validation_loss.cpu() / len(val_loader.dataset)
     torch.distributed.all_reduce(validation_loss, op=torch.distributed.ReduceOp.SUM)
+    correct = correct.cpu()
     torch.distributed.all_reduce(correct, op=torch.distributed.ReduceOp.SUM)
-    return validation_loss.cpu().item() / len(val_loader), correct.cpu().item()
+    return validation_loss.item(), correct.item()
 
 
 def main():
@@ -197,7 +202,7 @@ def main():
         raise ValueError()
 
     # Define loss
-    criterion = torch.nn.CrossEntropyLoss(reduction='mean')
+    criterion = torch.nn.CrossEntropyLoss(reduction='sum')
 
     # Sync models
     # sync_initial_weights(model)
