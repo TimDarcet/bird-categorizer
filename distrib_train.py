@@ -102,8 +102,8 @@ def load_data(data_folder, tv_prop, batch_size):
     train_loader = torch.utils.data.DataLoader(train_ds,
                                                batch_size=batch_size,
                                                sampler=train_sampler,
-                                               num_workers=0,
-                                               drop_last=True)
+                                               num_workers=0)
+                                            #    drop_last=True)
     val_loader = torch.utils.data.DataLoader(val_ds,
                                              batch_size=batch_size,
                                              sampler=val_sampler,
