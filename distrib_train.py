@@ -143,7 +143,7 @@ def train(epoch, model, train_loader, optimizer, criterion):
         mean_loss.backward()
         # sync_gradients(model)  # MEF: Si les batch ne sont pas de même tailles sur les différents nodes, la moyenne n'est pas équilibrée
         optimizer.step()
-    return loss.cpu().item()
+    return mean_loss.cpu().item()
 
 
 def validation(model, val_loader, optimizer, criterion):
