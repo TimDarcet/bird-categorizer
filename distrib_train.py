@@ -198,7 +198,7 @@ def main():
     criterion = torch.nn.CrossEntropyLoss(reduction='mean')
 
     # Sync models
-    sync_initial_weights(model)
+    # sync_initial_weights(model)
 
     # Run the training
     for epoch in range(1, args.epochs + 1):
