@@ -91,17 +91,18 @@ def set_random_seeds(random_seed=42):
 
 
 def load_data(data_folder, tv_prop, batch_size):
-    train_f_ds = datasets.ImageFolder(data_folder + '/train_images',
-                                    transform=train_transforms)
-    val_f_ds = datasets.ImageFolder(data_folder + '/val_images',
-                                    transform=train_transforms)
+    # train_f_ds = datasets.ImageFolder(data_folder + '/train_images',
+    #                                 transform=train_transforms)
+    # val_f_ds = datasets.ImageFolder(data_folder + '/val_images',
+    #                                 transform=train_transforms)
     # full_ds = ConcatDataset([train_f_ds, val_f_ds])
-    full_ds = train_f_ds
+    full_ds = datasets.ImageFolder(data_folder + '/train_val_images',
+                                   transform=train_transforms)
     train_size = int(tv_prop * len(full_ds))
     val_size = len(full_ds) - train_size
     print(f"Using train size {train_size} and val size {val_size} with batch size {batch_size}")
-    # train_ds, val_ds = random_split(full_ds, [train_size, val_size])
-    train_ds, val_ds = train_f_ds, val_f_ds
+    train_ds, val_ds = random_split(full_ds, [train_size, val_size])
+    # train_ds, val_ds = train_f_ds, val_f_ds
     train_sampler = DistributedSampler(train_ds)
     # val_sampler = DistributedSampler(val_ds)
     train_loader = torch.utils.data.DataLoader(train_ds,
@@ -140,7 +141,7 @@ def validation(model, val_loader, optimizer, criterion):
         # batch accuracy
         pred = output.data.max(1, keepdim=True)[1]
         correct += pred.eq(target.data.view_as(pred)).int().sum()
-    return validation_loss.cpu().item(), correct.cpu().item()
+    return validation_loss.cpu().item() / len(val_loader), correct.cpu().item()
 
 
 def main():
