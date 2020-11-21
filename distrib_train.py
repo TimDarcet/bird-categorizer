@@ -17,7 +17,7 @@ def init_parser():
     dataset_default = 'crops_square/bird_dataset'
     epochs_default = 20
     batch_size_default = 2048
-    lr_default = 0.1
+    lr_default = 0.01
     momentum_default = 0.5
     log_interval_default = 10
     experiment_default = 'experiment'
@@ -155,6 +155,8 @@ def validation(model, val_loader, optimizer, criterion):
         # batch accuracy
         pred = output.data.max(1, keepdim=True)[1]
         correct += pred.eq(target.data.view_as(pred)).int().sum()
+    torch.distributed.all_reduce(validation_loss, op=torch.distributed.ReduceOp.SUM)
+    torch.distributed.all_reduce(correct, op=torch.distributed.ReduceOp.SUM)
     return validation_loss.cpu().item() / len(val_loader), correct.cpu().item()
 
 
