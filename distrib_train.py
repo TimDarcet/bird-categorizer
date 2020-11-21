@@ -16,7 +16,7 @@ from model import Net
 def init_parser():
     dataset_default = 'crops_square/bird_dataset'
     epochs_default = 20
-    batch_size_default = 2048
+    batch_size_default = 64
     lr_default = 0.1
     momentum_default = 0.5
     log_interval_default = 10
@@ -125,8 +125,9 @@ def sync_initial_weights(model):
 
 def sync_gradients(model):
     for param in model.parameters():
-        torch.distributed.all_reduce(param.grad.data,
-                                     op=torch.distributed.reduce_op.SUM)
+        if param.requires_grad:
+            torch.distributed.all_reduce(param.grad.data,
+                                         op=torch.distributed.ReduceOp.SUM)
 
 
 def train(epoch, model, train_loader, optimizer, criterion):
