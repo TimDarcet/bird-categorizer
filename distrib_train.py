@@ -23,7 +23,7 @@ def init_parser():
     experiment_default = 'experiment'
     train_val_prop_default = 0.8
     random_seed_default = 42
-    optimizer_default = "SGD"
+    optimizer_default = "adam"
     parser = argparse.ArgumentParser(description='RecVis A3 training script')
     parser.add_argument("--local_rank",
                         type=int,
