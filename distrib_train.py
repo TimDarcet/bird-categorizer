@@ -7,6 +7,7 @@ from torch.utils.data import ConcatDataset, random_split, ChainDataset, Distribu
 from torchvision import datasets
 from torch.autograd import Variable
 from torch.nn.parallel import DistributedDataParallel
+from torch.utils.tensorboard import SummaryWriter
 from tqdm import tqdm
 
 from data import train_transforms
@@ -209,6 +210,9 @@ def main():
     # Sync models
     # sync_initial_weights(model)
 
+    # Init tensorboard writer
+    writer = SummaryWriter()
+
     # Run the training
     best_acc = 0
     best_loss = float('inf')
@@ -228,6 +232,10 @@ def main():
             print(f"Epoch {epoch:02d}: last train loss = {last_train_loss:03f} | avg val loss = {avg_val_loss:03f} | val acc = {val_acc:03f} ({int(val_corrects):03d}/{len(val_loader.dataset)})  (best loss!)")
         else:
             print(f"Epoch {epoch:02d}: last train loss = {last_train_loss:03f} | avg val loss = {avg_val_loss:03f} | val acc = {val_acc:03f} ({int(val_corrects):03d}/{len(val_loader.dataset)})")
+        writer.add_scalar('Loss/train', last_train_loss, epoch)
+        writer.add_scalar('Loss/val', avg_val_loss, epoch)
+        writer.add_scalar('Accuracy/val', val_acc, epoch)
+        
 
 if __name__ == "__main__":
     main()
