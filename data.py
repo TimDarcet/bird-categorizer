@@ -22,7 +22,7 @@ train_transforms = transforms.Compose([
     # transforms.RandomErasing(),
     # transforms.RandomApply([transforms.GaussianBlur(5, (0.1, 2))], p=0.1),
     # transforms.ToPILImage(),
-    # transforms.RandomAffine(degrees=10, translate=[0.1, 0.1], scale=[0.9, 1.1], shear=[-5, 5], resample=BICUBIC),
+    transforms.RandomAffine(degrees=10, translate=[0.1, 0.1], scale=[0.9, 1.1], shear=[-5, 5], resample=BICUBIC),
     transforms.Resize((224, 224), interpolation=BICUBIC),
     transforms.ToTensor(),
     transforms.RandomHorizontalFlip(),
