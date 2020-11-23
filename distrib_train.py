@@ -210,14 +210,24 @@ def main():
     # sync_initial_weights(model)
 
     # Run the training
+    best_acc = 0
+    best_loss = float('inf')
     for epoch in range(1, args.epochs + 1):
         last_train_loss = train(epoch, model, train_loader, optimizer, criterion)
         avg_val_loss, val_corrects = validation(model, val_loader, optimizer, criterion)
         val_acc = val_corrects / len(val_loader.dataset)
-        print(f"Epoch {epoch:02d}: last train loss = {last_train_loss:03f} | avg val loss = {avg_val_loss:03f} | val acc = {val_acc:03f} ({int(val_corrects):03d}/{len(val_loader.dataset)})")
-        model_file = args.experiment + '/model_' + str(epoch) + '.pth'
-        torch.save(model.state_dict(), model_file)
-        # print('Saved model to ' + model_file + '. You can run `python evaluate.py --model ' + model_file + '` to generate the Kaggle formatted csv file\n')
+        if val_acc >= best_acc:
+            best_acc = val_acc
+            model_file = args.experiment + f'/model_{epoch}.best_val.pth'
+            torch.save(model.state_dict(), model_file)
+            print(f"Epoch {epoch:02d}: last train loss = {last_train_loss:03f} | avg val loss = {avg_val_loss:03f} | val acc = {val_acc:03f} ({int(val_corrects):03d}/{len(val_loader.dataset)})  (best acc!)")
+        elif avg_val_loss <= best_loss:
+            best_loss = avg_val_loss
+            model_file = args.experiment + f'/model_{epoch}.best_loss.pth'
+            torch.save(model.state_dict(), model_file)
+            print(f"Epoch {epoch:02d}: last train loss = {last_train_loss:03f} | avg val loss = {avg_val_loss:03f} | val acc = {val_acc:03f} ({int(val_corrects):03d}/{len(val_loader.dataset)})  (best loss!)")
+        else:
+            print(f"Epoch {epoch:02d}: last train loss = {last_train_loss:03f} | avg val loss = {avg_val_loss:03f} | val acc = {val_acc:03f} ({int(val_corrects):03d}/{len(val_loader.dataset)})")
 
 if __name__ == "__main__":
     main()
