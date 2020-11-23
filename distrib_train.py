@@ -222,19 +222,22 @@ def main():
         val_acc = val_corrects / len(val_loader.dataset)
         if val_acc >= best_acc:
             best_acc = val_acc
-            model_file = args.experiment + f'/model_{epoch}.best_val.pth'
-            torch.save(model.state_dict(), model_file)
+            if torch.distributed.get_rank() == 0:
+                model_file = args.experiment + f'/model_{epoch}.best_val.pth'
+                torch.save(model.state_dict(), model_file)
             print(f"Epoch {epoch:02d}: last train loss = {last_train_loss:03f} | avg val loss = {avg_val_loss:03f} | val acc = {val_acc:03f} ({int(val_corrects):03d}/{len(val_loader.dataset)})  (best acc!)")
         elif avg_val_loss <= best_loss:
             best_loss = avg_val_loss
-            model_file = args.experiment + f'/model_{epoch}.best_loss.pth'
-            torch.save(model.state_dict(), model_file)
+            if torch.distributed.get_rank() == 0:
+                model_file = args.experiment + f'/model_{epoch}.best_loss.pth'
+                torch.save(model.state_dict(), model_file)
             print(f"Epoch {epoch:02d}: last train loss = {last_train_loss:03f} | avg val loss = {avg_val_loss:03f} | val acc = {val_acc:03f} ({int(val_corrects):03d}/{len(val_loader.dataset)})  (best loss!)")
         else:
             print(f"Epoch {epoch:02d}: last train loss = {last_train_loss:03f} | avg val loss = {avg_val_loss:03f} | val acc = {val_acc:03f} ({int(val_corrects):03d}/{len(val_loader.dataset)})")
-        writer.add_scalar('Loss/train', last_train_loss, epoch)
-        writer.add_scalar('Loss/val', avg_val_loss, epoch)
-        writer.add_scalar('Accuracy/val', val_acc, epoch)
+        if torch.distributed.get_rank() == 0:
+            writer.add_scalar('Loss/train', last_train_loss, epoch)
+            writer.add_scalar('Loss/val', avg_val_loss, epoch)
+            writer.add_scalar('Accuracy/val', val_acc, epoch)
         
 
 if __name__ == "__main__":
