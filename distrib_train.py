@@ -18,13 +18,13 @@ def init_parser():
     dataset_default = 'crops_square/bird_dataset'
     epochs_default = 200
     batch_size_default = 2048
-    lr_default = 0.5
+    lr_default = 0.01
     momentum_default = 0.5
     log_interval_default = 10
     experiment_default = 'experiment'
     train_val_prop_default = 0.9
     random_seed_default = 42
-    optimizer_default = "adam"
+    optimizer_default = "SGD"
     parser = argparse.ArgumentParser(description='RecVis A3 training script')
     parser.add_argument("--local_rank",
                         type=int,
