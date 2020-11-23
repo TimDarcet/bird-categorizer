@@ -1,6 +1,7 @@
 n_nodes=$1
 echo "Launching $n_nodes nodes"
 rank=0
+rm -rf logs
 mkdir -p logs/stdout
 mkdir -p logs/stderr
 for i in $(cat computers_name | head -n $n_nodes)
