@@ -22,7 +22,7 @@ def init_parser():
     momentum_default = 0.5
     log_interval_default = 10
     experiment_default = 'experiment'
-    train_val_prop_default = 0.8
+    train_val_prop_default = 0.9
     random_seed_default = 42
     optimizer_default = "adam"
     parser = argparse.ArgumentParser(description='RecVis A3 training script')
@@ -99,7 +99,7 @@ def load_data(data_folder, tv_prop, batch_size):
     print(f"Using train size {train_size} and val size {val_size} with batch size {batch_size}")
     train_ds, val_ds = random_split(full_ds, [train_size, val_size])
     train_sampler = DistributedSampler(train_ds)
-    val_sampler = DistributedSampler(val_ds)
+    # val_sampler = DistributedSampler(val_ds)
     train_loader = torch.utils.data.DataLoader(train_ds,
                                                batch_size=batch_size,
                                                sampler=train_sampler,
@@ -107,7 +107,7 @@ def load_data(data_folder, tv_prop, batch_size):
                                             #    drop_last=True)
     val_loader = torch.utils.data.DataLoader(val_ds,
                                              batch_size=batch_size,
-                                             sampler=val_sampler,
+                                            #  sampler=val_sampler,
                                              num_workers=0)
     return train_loader, val_loader
 
@@ -160,9 +160,10 @@ def validation(model, val_loader, optimizer, criterion):
         # batch accuracy
         pred = output.data.max(1, keepdim=True)[1]
         correct += pred.eq(target.data.view_as(pred)).sum()
-    torch.distributed.all_reduce(validation_loss, op=torch.distributed.ReduceOp.SUM)
-    validation_loss = validation_loss.cpu() / torch.distributed.get_world_size()
-    torch.distributed.all_reduce(correct, op=torch.distributed.ReduceOp.SUM)
+    # torch.distributed.all_reduce(validation_loss, op=torch.distributed.ReduceOp.SUM)
+    # validation_loss = validation_loss.cpu() / torch.distributed.get_world_size()
+    validation_loss = validation_loss.cpu()
+    # torch.distributed.all_reduce(correct, op=torch.distributed.ReduceOp.SUM)
     correct = correct.cpu()
     return validation_loss.item(), correct.item()
 
