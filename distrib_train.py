@@ -211,7 +211,8 @@ def main():
     # sync_initial_weights(model)
 
     # Init tensorboard writer
-    writer = SummaryWriter()
+    if torch.distributed.get_rank() == 0:
+        writer = SummaryWriter()
 
     # Run the training
     best_acc = 0
