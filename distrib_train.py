@@ -161,8 +161,8 @@ def validation(model, val_loader, optimizer, criterion):
         correct += pred.eq(target.data.view_as(pred)).sum()
     torch.distributed.all_reduce(validation_loss, op=torch.distributed.ReduceOp.SUM)
     validation_loss = validation_loss.cpu() / torch.distributed.get_world_size()
-    correct = correct.cpu()
     torch.distributed.all_reduce(correct, op=torch.distributed.ReduceOp.SUM)
+    correct = correct.cpu()
     return validation_loss.item(), correct.item()
 
 
