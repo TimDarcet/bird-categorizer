@@ -37,24 +37,29 @@ if not os.path.isdir(args.experiment):
     os.makedirs(args.experiment)
 
 # Data initialization and loading
-from data import train_transforms, eval_transforms
+from data import train_transforms
 def valid(fn):
     return fn.split('.')[-2] == '00' or True
 
 
-train_f_ds = datasets.ImageFolder(args.data + '/train_images',
-                                  transform=train_transforms,
-                                  is_valid_file=valid)
-val_f_ds = datasets.ImageFolder(args.data + '/val_images',
-                                transform=train_transforms,
-                                is_valid_file=valid)
-full_ds = ConcatDataset([train_f_ds, val_f_ds])
+# train_f_ds = datasets.ImageFolder(args.data + '/train_images',
+#                                   transform=train_transforms,
+#                                   is_valid_file=valid)
+# val_f_ds = datasets.ImageFolder(args.data + '/val_images',
+#                                 transform=train_transforms,
+#                                 is_valid_file=valid)
+full_ds = datasets.ImageFolder(args.data + '/train_val_images',
+                                transform=train_transforms)
 train_size = int(args.train_val_prop * len(full_ds))
 val_size = len(full_ds) - train_size
 print(f"Using train size {train_size} and val size {val_size}")
+# full_ds = ConcatDataset([train_f_ds, val_f_ds])
+# train_size = int(args.train_val_prop * len(full_ds))
+# val_size = len(full_ds) - train_size
+# print(f"Using train size {train_size} and val size {val_size}")
 train_ds, val_ds = random_split(full_ds, [train_size, val_size])
-train_loader = torch.utils.data.DataLoader(train_ds, batch_size=args.batch_size, shuffle=True, num_workers=4)
-val_loader = torch.utils.data.DataLoader(val_ds, batch_size=args.batch_size, shuffle=False, num_workers=4)
+train_loader = torch.utils.data.DataLoader(train_ds, batch_size=args.batch_size, shuffle=True, num_workers=0)
+val_loader = torch.utils.data.DataLoader(val_ds, batch_size=args.batch_size, shuffle=False, num_workers=0)
 
 # Neural network and optimizer
 # We define neural net in model.py so that it can be reused by the evaluate.py script
