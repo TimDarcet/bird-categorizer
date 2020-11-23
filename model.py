@@ -1,1 +1,1 @@
-models/model_resnet152.py
+models/model_resnet50_dropout.py
