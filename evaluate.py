@@ -19,7 +19,15 @@ args = parser.parse_args()
 use_cuda = torch.cuda.is_available()
 
 state_dict = torch.load(args.model, map_location=torch.device("cpu"))
+from collections import OrderedDict
+new_state_dict = OrderedDict()
+for k, v in state_dict.items():
+    name = k[7:] # remove `module.`
+    new_state_dict[name] = v
+state_dict = new_state_dict
+# load params
 model = Net()
+model.load_state_dict(new_state_dict)
 model.load_state_dict(state_dict)
 model.eval()
 if use_cuda:
