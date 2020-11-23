@@ -138,12 +138,13 @@ def train(epoch, model, train_loader, optimizer, criterion):
         optimizer.zero_grad()
         output = model(data)
         loss = criterion(output, target)
-        torch.distributed.all_reduce(loss, op=torch.distributed.ReduceOp.SUM)
-        mean_loss = loss / (torch.distributed.get_world_size() * len(target))
-        mean_loss.backward()
+        # torch.distributed.all_reduce(loss, op=torch.distributed.ReduceOp.SUM)
+        # mean_loss = loss / (torch.distributed.get_world_size() * len(target))
+        # mean_loss.backward()
         # sync_gradients(model)  # MEF: Si les batch ne sont pas de même tailles sur les différents nodes, la moyenne n'est pas équilibrée
+        loss.backward()
         optimizer.step()
-    return mean_loss.cpu().item()
+    return loss.cpu().item()
 
 
 def validation(model, val_loader, optimizer, criterion):
@@ -157,9 +158,9 @@ def validation(model, val_loader, optimizer, criterion):
         validation_loss += criterion(output, target)
         # batch accuracy
         pred = output.data.max(1, keepdim=True)[1]
-        correct += pred.eq(target.data.view_as(pred)).int().sum()
-    validation_loss = validation_loss.cpu() / len(val_loader.dataset)
+        correct += pred.eq(target.data.view_as(pred)).sum()
     torch.distributed.all_reduce(validation_loss, op=torch.distributed.ReduceOp.SUM)
+    validation_loss = validation_loss.cpu() / torch.distributed.get_world_size()
     correct = correct.cpu()
     torch.distributed.all_reduce(correct, op=torch.distributed.ReduceOp.SUM)
     return validation_loss.item(), correct.item()
@@ -177,7 +178,8 @@ def main():
         os.makedirs(args.experiment)
 
     # Initializes the distributed backend which will take care of sychronizing nodes/GPUs
-    torch.distributed.init_process_group(backend="gloo")  # TODO: try NCCL backend
+    # torch.distributed.init_process_group(backend="gloo")  # TODO: try NCCL backend
+    torch.distributed.init_process_group(backend="nccl")
 
     # Data initialization and loading
     train_loader, val_loader = load_data(args.data,
@@ -202,7 +204,7 @@ def main():
         raise ValueError()
 
     # Define loss
-    criterion = torch.nn.CrossEntropyLoss(reduction='sum')
+    criterion = torch.nn.CrossEntropyLoss(reduction='mean')
 
     # Sync models
     # sync_initial_weights(model)
