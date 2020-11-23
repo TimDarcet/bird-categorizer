@@ -17,7 +17,7 @@ def init_parser():
     dataset_default = 'crops_square/bird_dataset'
     epochs_default = 200
     batch_size_default = 2048
-    lr_default = 0.3
+    lr_default = 2
     momentum_default = 0.5
     log_interval_default = 10
     experiment_default = 'experiment'
