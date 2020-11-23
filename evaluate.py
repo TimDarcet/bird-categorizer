@@ -18,7 +18,7 @@ parser.add_argument('--outfile', type=str, default='experiment/kaggle.csv', meta
 args = parser.parse_args()
 use_cuda = torch.cuda.is_available()
 
-state_dict = torch.load(args.model)
+state_dict = torch.load(args.model, map_location=torch.device("cpu"))
 model = Net()
 model.load_state_dict(state_dict)
 model.eval()
