@@ -24,5 +24,6 @@ class Net(nn.Module):
 
     def forward(self, x):
         feats = self.featurizer(x)
-        drops = self.dp(feats)
-        return self.classifier(drops)
+        # drops = self.dp(feats)
+        out = self.classifier(feats)
+        return out
