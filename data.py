@@ -17,11 +17,11 @@ eval_transforms = transforms.Compose([
 ])
 
 train_transforms = transforms.Compose([
-    transforms.ColorJitter(brightness=0.3, contrast=0.3, saturation=0.3, hue=0.1),
+    transforms.ColorJitter(brightness=0.1, contrast=0.2, saturation=0.2, hue=0.05),
     # transforms.ToTensor(),
     # transforms.ToPILImage(),
     transforms.Resize((224, 224), interpolation=BICUBIC),
-    transforms.RandomAffine(degrees=30, translate=[0.2, 0.2], scale=[0.7, 1.4], shear=[-10, 10], resample=BICUBIC),
+    transforms.RandomAffine(degrees=20, translate=[0.1, 0.1], scale=[0.9, 1.1], shear=[-10, 10], resample=BICUBIC),
     transforms.ToTensor(),
     transforms.RandomErasing(p=0.3),
     transforms.RandomApply([transforms.GaussianBlur(5, (0.1, 2))], p=0.3),
