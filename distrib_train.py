@@ -183,14 +183,15 @@ def main():
     # We need to use seeds to make sure that the models initialized in different processes are the same
     set_random_seeds(args.random_seed)
 
-    # Create experiment folder
-    if torch.distributed.get_rank() == 0:
-        expfolder = os.path.join(args.experiment, datetime.now().isoformat())
-        os.makedirs(expfolder)
 
     # Initializes the distributed backend which will take care of sychronizing nodes/GPUs
     # torch.distributed.init_process_group(backend="gloo")  # TODO: try NCCL backend
     torch.distributed.init_process_group(backend="nccl")
+
+    # Create experiment folder
+    if torch.distributed.get_rank() == 0:
+        expfolder = os.path.join(args.experiment, datetime.now().isoformat())
+        os.makedirs(expfolder)
 
     # Data initialization and loading
     train_loader, val_loader = load_data(args.data,
