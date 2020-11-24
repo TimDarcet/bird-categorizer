@@ -10,11 +10,10 @@ class Net(nn.Module):
     def __init__(self):
         super(Net, self).__init__()
         self.model_name_list = [
-            # ("model_resnet50", "experiment/model_1.pth"),
-            # ("model_resnet50", "experiment/model_2.pth"),
-            # ("model_resnet50", "experiment/model_3.pth"),
             ("model_resnet50", "experiment/model_9.pth"),
             ("model_resnet50", "experiment/model_10.pth"),
+            ("model_resnext101_dropout_l4", ""),
+            
         ]
         self.models = nn.ModuleList()
         for m, m_w in self.model_name_list:
@@ -35,7 +34,7 @@ class Net(nn.Module):
             for param in model.parameters():
                 param.require_grad = False
             self.models.append(model)
-        self.sm = torch.nn.Softmax(2)
+        self.sm = torch.nn.Softmax(1)
 
     def forward(self, x):
         # for model in self.models:
