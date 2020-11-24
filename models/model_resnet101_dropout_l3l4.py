@@ -16,7 +16,7 @@ class Identity(nn.Module):
 class Net(nn.Module):
     def __init__(self):
         super(Net, self).__init__()
-        self.featurizer = models.resnet152(pretrained=True)
+        self.featurizer = models.resnet101(pretrained=True)
         num_ftrs = self.featurizer.fc.in_features
         for param in self.featurizer.parameters():
             param.requires_grad = False
