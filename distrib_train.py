@@ -14,6 +14,8 @@ from data import train_transforms
 from model import Net
 
 
+nClasses = 20
+
 def init_parser():
     dataset_default = 'crops_square/bird_dataset'
     epochs_default = 500
@@ -150,6 +152,9 @@ def train(epoch, model, train_loader, optimizer, criterion):
 
 def validation(model, val_loader, optimizer, criterion):
     model.eval()
+    classes_corrects = torch.Tensor([0] * nClasses).to("cuda") 
+    classes_losses = torch.Tensor([0] * nClasses).to("cuda") 
+    classes_total = torch.Tensor([0] * nClasses).to("cuda") 
     validation_loss = torch.Tensor([0]).to("cuda")
     correct = torch.Tensor([0]).to("cuda")
     for data, target in val_loader:
@@ -160,12 +165,14 @@ def validation(model, val_loader, optimizer, criterion):
         # batch accuracy
         pred = output.data.max(1, keepdim=True)[1]
         correct += pred.eq(target.data.view_as(pred)).sum()
-    # torch.distributed.all_reduce(validation_loss, op=torch.distributed.ReduceOp.SUM)
-    # validation_loss = validation_loss.cpu() / torch.distributed.get_world_size()
+        for c in range(nClasses):
+            here = (target == c)
+            classes_corrects[c] += pred.eq(target.data.view_as(pred))[here].sum()
+            classes_total[c] += here.sum()
     validation_loss = validation_loss.cpu()
-    # torch.distributed.all_reduce(correct, op=torch.distributed.ReduceOp.SUM)
     correct = correct.cpu()
-    return validation_loss.item(), correct.item()
+    classes_acc = (classes_corrects / classes_total).cpu()
+    return validation_loss.item(), correct.item(), classes_acc
 
 
 def main():
@@ -220,7 +227,7 @@ def main():
     best_loss = float('inf')
     for epoch in range(1, args.epochs + 1):
         last_train_loss = train(epoch, model, train_loader, optimizer, criterion)
-        avg_val_loss, val_corrects = validation(model, val_loader, optimizer, criterion)
+        avg_val_loss, val_corrects, classes_val = validation(model, val_loader, optimizer, criterion)
         val_acc = val_corrects / len(val_loader.dataset)
         if val_acc >= best_acc:
             best_acc = val_acc
@@ -240,6 +247,8 @@ def main():
             writer.add_scalar('Loss/train', last_train_loss, epoch)
             writer.add_scalar('Loss/val', avg_val_loss, epoch)
             writer.add_scalar('Accuracy/val', val_acc, epoch)
+            for c in range(nClasses):
+                writer.add_scalar(f'Accuracy/class_{c}', classes_val[c], epoch)
         
 
 if __name__ == "__main__":
