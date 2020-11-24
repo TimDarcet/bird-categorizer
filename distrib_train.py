@@ -184,8 +184,9 @@ def main():
     set_random_seeds(args.random_seed)
 
     # Create experiment folder
-    expfolder = os.path.join(args.experiment, datetime.now().isoformat())
-    os.makedirs(expfolder)
+    if torch.distributed.get_rank() == 0:
+        expfolder = os.path.join(args.experiment, datetime.now().isoformat())
+        os.makedirs(expfolder)
 
     # Initializes the distributed backend which will take care of sychronizing nodes/GPUs
     # torch.distributed.init_process_group(backend="gloo")  # TODO: try NCCL backend
