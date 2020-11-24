@@ -23,8 +23,8 @@ train_transforms = transforms.Compose([
     transforms.Resize((224, 224), interpolation=BICUBIC),
     transforms.RandomAffine(degrees=30, translate=[0.2, 0.2], scale=[0.7, 1.4], shear=[-10, 10], resample=BICUBIC),
     transforms.ToTensor(),
-    transforms.RandomErasing(p=0.5),
-    transforms.RandomApply([transforms.GaussianBlur(5, (0.1, 2))], p=0.4),
+    transforms.RandomErasing(p=0.3),
+    transforms.RandomApply([transforms.GaussianBlur(5, (0.1, 2))], p=0.3),
     transforms.RandomHorizontalFlip(),
     transforms.Normalize(mean=[0.485, 0.456, 0.406],
                          std=[0.229, 0.224, 0.225])
