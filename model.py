@@ -1,1 +1,1 @@
-models/model_resnext101_dropout_l4.py
+models/model_resnet152_dropout_l4.py
