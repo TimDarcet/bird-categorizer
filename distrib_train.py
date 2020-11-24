@@ -9,6 +9,7 @@ from torch.autograd import Variable
 from torch.nn.parallel import DistributedDataParallel
 from torch.utils.tensorboard import SummaryWriter
 from tqdm import tqdm
+from datetime import datetime
 
 from data import train_transforms
 from model import Net
@@ -183,8 +184,8 @@ def main():
     set_random_seeds(args.random_seed)
 
     # Create experiment folder
-    if not os.path.isdir(args.experiment):
-        os.makedirs(args.experiment)
+    expfolder = os.path.join(args.experiment, datetime.now().isoformat())
+    os.makedirs(expfolder)
 
     # Initializes the distributed backend which will take care of sychronizing nodes/GPUs
     # torch.distributed.init_process_group(backend="gloo")  # TODO: try NCCL backend
@@ -232,13 +233,13 @@ def main():
         if val_acc >= best_acc:
             best_acc = val_acc
             if torch.distributed.get_rank() == 0:
-                model_file = args.experiment + f'/model_{epoch}.best_val.pth'
+                model_file = expfolder + f'/model_{epoch}.best_val.pth'
                 torch.save(model.state_dict(), model_file)
             print(f"Epoch {epoch:02d}: last train loss = {last_train_loss:03f} | avg val loss = {avg_val_loss:03f} | val acc = {val_acc:03f} ({int(val_corrects):03d}/{len(val_loader.dataset)})  (best acc!)")
         elif avg_val_loss <= best_loss:
             best_loss = avg_val_loss
             if torch.distributed.get_rank() == 0:
-                model_file = args.experiment + f'/model_{epoch}.best_loss.pth'
+                model_file = expfolder + f'/model_{epoch}.best_loss.pth'
                 torch.save(model.state_dict(), model_file)
             print(f"Epoch {epoch:02d}: last train loss = {last_train_loss:03f} | avg val loss = {avg_val_loss:03f} | val acc = {val_acc:03f} ({int(val_corrects):03d}/{len(val_loader.dataset)})  (best loss!)")
         else:
