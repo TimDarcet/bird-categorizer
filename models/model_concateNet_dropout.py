@@ -51,7 +51,7 @@ class Net(nn.Module):
             elif mn == "googlenet":
                 self.n_features.append(feater.fc.in_features)
                 feater.fc = Identity()
-        self.dp = nn.Dropout(0.7)
+        self.dp = nn.Dropout(0.)
         self.classifier = nn.Linear(sum(self.n_features), nclasses)
 
     def forward(self, x):
