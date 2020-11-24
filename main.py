@@ -10,7 +10,7 @@ from tqdm import tqdm
 
 # Training settings
 parser = argparse.ArgumentParser(description='RecVis A3 training script')
-parser.add_argument('--data', type=str, default='bird_dataset', metavar='D',
+parser.add_argument('--data', type=str, default='crops_square/bird_dataset', metavar='D',
                     help="folder where data is located. train_images/ and val_images/ need to be found in the folder")
 parser.add_argument('--batch-size', type=int, default=64, metavar='B',
                     help='input batch size for training (default: 64)')
@@ -26,7 +26,7 @@ parser.add_argument('--log-interval', type=int, default=10, metavar='N',
                     help='how many batches to wait before logging training status')
 parser.add_argument('--experiment', type=str, default='experiment', metavar='E',
                     help='folder where experiment outputs are located.')
-parser.add_argument('--train-val-prop', type=float, default=0.75, metavar='TVP',
+parser.add_argument('--train-val-prop', type=float, default=0.9, metavar='TVP',
                     help='proportion of images to use for train set.')
 args = parser.parse_args()
 use_cuda = torch.cuda.is_available()
