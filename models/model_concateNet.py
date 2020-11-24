@@ -18,7 +18,7 @@ class Net(nn.Module):
     def __init__(self):
         super(Net, self).__init__()
         self.model_list = [
-            "vgg16",
+            # "vgg16",
             "resnet50",
             # "squeezenet1_0",
             # "squeezenet1_1",
