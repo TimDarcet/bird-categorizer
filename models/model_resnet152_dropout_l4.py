@@ -23,7 +23,7 @@ class Net(nn.Module):
         for param in self.featurizer.layer4.parameters():
             param.requires_grad = True
         self.featurizer.fc = Identity()
-        self.dp = nn.Dropout(0.2)
+        self.dp = nn.Dropout(0.6)
         self.classifier = nn.Linear(num_ftrs, nclasses)
 
     def forward(self, x):

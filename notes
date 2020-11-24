@@ -34,6 +34,7 @@ random erasing https://arxiv.org/abs/1708.04896
 
 
 RESIZE (En 64x64 je dépassais pas 50% d'acc, en 256x256 avec exactement la meme setup je sors 75% en 5 epochs)
+-> 224 (c'est fait pour)
 
 étudier les tailles des crops -> adaptive resize ?
 
