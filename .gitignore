@@ -8,3 +8,7 @@ crops*
 recvis.zip
 logs
 runs
+notes
+*.zip
+keep_models
+computers_name

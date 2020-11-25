@@ -1,38 +1,28 @@
-## Object recognition and computer vision 2020/2021
+Caltech200 bird dataset classifier challenge
+============================================
 
-### Assignment 3: Image classification 
+This is my project for the image classification challenge as part of the image recognition course at MVA.
 
-#### Requirements
-1. Install PyTorch from http://pytorch.org
+For more information on the methods I used, please read the file `MVA_RecVis_TD3_report.pdf`
 
-2. Run the following command to install additional dependencies
 
-```bash
-pip install -r requirements.txt
-```
+### Codebase structure
+- **Cropping**: `cropper.py` is used to crop an initial dataset into a cropped, cleaner dataset
+- **Training and testing**:
+    - `data.py` defines the data transforms and augmentations
+    - `models` is the folder containing all model files.
+    - `model.py` defines the model used as `Net`. In practice, `model.py` is a symlink to a file in the folder `models`.
+    - `main.py` is a simple training script with an `argparse` CLI.
+    - `evaluate.py` is a simple evaluation script featuring an `argparse` CLI to evaluate on the test dataset.
+- **Distributing computations**:
+    - `computers_name` is the list of the adresses of computers usable for training, one on each line. It is not included here.
+    - `distrib_train.py` is a more advanced distributed training script using Pytorch `torch.nn.parallel` module and `DistributedDataParallel` function. It features an `argparse` CLI, but should be launched using Pytorch's `launch.py` script. See also `launch.sh` for launching.
+    - `launch.sh` is a bash script to launch a worker on a specified number of nodes, taking node adresses from `computers_name`. It spawns a tmux on each node to allow for easily attaching to its shell and easy killing, and logs to the folders `logs/stdout` and `logs/stderr`
+    - `kill.sh` does the inverse of `launch.sh`, it kills workers on a specified number of nodes.
+- **Visualising features**
+    - `visualise_features.py` is a script to visualise the outputs of a neural network on the dataset using PCA and t-SNE. It uses the model `Net` defined in `featurizer.py`. I used it to visualise the activations of the layer just before classification, in order to understand better the inner workings of my models.
+    - `featurizer.py` defines the model used for this. Usually a symlink to a model in `models`.
+    - `TSNE_embeddings` is a folder containing pictures of such embeddings.
+- `workshop.ipynb` is a notebook that I used to quickly try different things.
+- `MVA_RecVis_TD3_report.pdf` is my formal report where I detail the methods I used.
 
-#### Dataset
-We will be using a dataset containing 200 different classes of birds adapted from the [CUB-200-2011 dataset](http://www.vision.caltech.edu/visipedia/CUB-200-2011.html).
-Download the training/validation/test images from [here](https://www.di.ens.fr/willow/teaching/recvis18orig/assignment3/bird_dataset.zip). The test image labels are not provided.
-
-#### Training and validating your model
-Run the script `main.py` to train your model.
-
-Modify `main.py`, `model.py` and `data.py` for your assignment, with an aim to make the validation score better.
-
-- By default the images are loaded and resized to 64x64 pixels and normalized to zero-mean and standard deviation of 1. See data.py for the `data_transforms`.
-
-#### Evaluating your model on the test set
-
-As the model trains, model checkpoints are saved to files such as `model_x.pth` to the current working directory.
-You can take one of the checkpoints and run:
-
-```
-python evaluate.py --data [data_dir] --model [model_file]
-```
-
-That generates a file `kaggle.csv` that you can upload to the private kaggle competition website.
-
-#### Acknowledgments
-Adapted from Rob Fergus and Soumith Chintala https://github.com/soumith/traffic-sign-detection-homework.<br/>
-Adaptation done by Gul Varol: https://github.com/gulvarol
