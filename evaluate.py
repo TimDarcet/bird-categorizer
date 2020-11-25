@@ -8,27 +8,27 @@ import torch
 from model import Net
 
 parser = argparse.ArgumentParser(description='RecVis A3 evaluation script')
-parser.add_argument('--data', type=str, default='bird_dataset', metavar='D',
+parser.add_argument('--data', type=str, default='crops_square/bird_dataset', metavar='D',
                     help="folder where data is located. test_images/ need to be found in the folder")
-parser.add_argument('--model', type=str, metavar='M',
+parser.add_argument('--model', type=str, metavar='M', default=None,
                     help="the model file to be evaluated. Usually it is of the form model_X.pth")
 parser.add_argument('--outfile', type=str, default='experiment/kaggle.csv', metavar='D',
                     help="name of the output csv file")
 
 args = parser.parse_args()
 use_cuda = torch.cuda.is_available()
-
-state_dict = torch.load(args.model, map_location=torch.device("cpu"))
-from collections import OrderedDict
-new_state_dict = OrderedDict()
-for k, v in state_dict.items():
-    name = k[7:] # remove `module.`
-    new_state_dict[name] = v
-state_dict = new_state_dict
-# load params
 model = Net()
-model.load_state_dict(new_state_dict)
-model.load_state_dict(state_dict)
+if args.model is not None:
+    state_dict = torch.load(args.model, map_location=torch.device("cpu"))
+    from collections import OrderedDict
+    new_state_dict = OrderedDict()
+    for k, v in state_dict.items():
+        name = k[7:] # remove `module.`
+        new_state_dict[name] = v
+    state_dict = new_state_dict
+    # load params
+    model.load_state_dict(new_state_dict)
+    model.load_state_dict(state_dict)
 model.eval()
 if use_cuda:
     print('Using GPU')

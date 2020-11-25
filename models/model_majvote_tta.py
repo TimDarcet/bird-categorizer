@@ -16,7 +16,7 @@ class Net(nn.Module):
         self.transforms = ttach.Compose(
             [
                 ttach.HorizontalFlip(),
-                ttach.Scale(scales=[1, 1.05], interpolation="linear"),
+                # ttach.Scale(scales=[1, 1.05], interpolation="linear"),
                 ttach.Multiply(factors=[0.95, 1, 1.05]),
             ]
         )

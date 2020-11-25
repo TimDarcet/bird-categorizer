@@ -10,20 +10,20 @@ class Net(nn.Module):
     def __init__(self):
         super(Net, self).__init__()
         self.model_name_list = [
-            ("model_resnet50", "experiment/model_9.pth"),
-            ("model_resnet50", "experiment/model_10.pth"),
-            ("model_resnext101_dropout_l4", ""),
-            
+            ("model_resnext101_dropout_l4", "keep_models/model_232.best_val.pth"),
+            ("model_densenet121_dropout", "keep_models/model_densenet121_dropou2.pth"),
+            ("model_resnet152_dropout_l4", "keep_models/model_resnet152_dropout_l4.pth"),
+
         ]
         self.models = nn.ModuleList()
         for m, m_w in self.model_name_list:
             state_dict = torch.load(m_w, map_location=torch.device("cpu"))
-            # from collections import OrderedDict
-            # new_state_dict = OrderedDict()
-            # for k, v in state_dict.items():
-            #     name = k[7:] # remove `module.`
-            #     new_state_dict[name] = v
-            # state_dict = new_state_dict
+            from collections import OrderedDict
+            new_state_dict = OrderedDict()
+            for k, v in state_dict.items():
+                name = k[7:] # remove `module.`
+                new_state_dict[name] = v
+            state_dict = new_state_dict
             # load params
             spec = importlib.util.spec_from_file_location(m, f"./models/{m}.py")
             foo = importlib.util.module_from_spec(spec)

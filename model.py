@@ -1,1 +1,1 @@
-models/model_densenet121_dropout.py
+models/model_majvote.py
